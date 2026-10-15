@@ -1,0 +1,242 @@
+# FlowSentry — Feature Schema
+# CN-005 Feature Validation · TRD §9 · FE-006, FE-007, FE-010
+# ─────────────────────────────────────────────────────────────────────────────
+# This file defines the canonical feature contract for FlowSentry:
+#   - What features training expects
+#   - What features inference must provide
+#   - How extractor columns map to schema features (alias map)
+#
+# This schema is validated at:
+#   - Model training start (CN-006+)
+#   - PCAP inference (CN-015) — must match exactly
+#   - Feature parity check between training and extractor (CN-014)
+#
+# Schema mismatch raises SchemaMismatchError (fail closed).
+# ─────────────────────────────────────────────────────────────────────────────
+
+version: "1.0"
+created: "2026-10-14"  # CN-005
+status: "approved"  # approved | draft
+approved_by: "FlowSentry Team (CN-005)"
+
+# Feature families per Review-1 (TRD §9.1)
+# All flow-level statistical features; never payload content.
+feature_families:
+  - time      # Timing features: duration, inter-arrival times, active/idle periods
+  - volume    # Volume features: packet counts, byte counts, throughput
+  - tcp_flag  # TCP flag statistics (not available in this dataset)
+  - directional  # Directional/bidirectional ratios (fwd/bwd not explicitly present)
+
+# Features used for training (22 features, not including target_class)
+# Classified by family based on actual column names and semantics
+features:
+  # TIME FAMILY - Flow timing and inter-arrival statistics
+  - name: "duration"
+    family: "time"
+    dtype: "float"
+    description: "Total flow duration"
+    unit: "seconds"
+    role: "feature"
+    
+  - name: "total_fiat"
+    family: "time"
+    dtype: "float"
+    description: "Total forward inter-arrival time"
+    unit: "seconds"
+    role: "feature"
+    
+  - name: "total_biat"
+    family: "time"
+    dtype: "float"
+    description: "Total backward inter-arrival time"
+    unit: "seconds"
+    role: "feature"
+    
+  - name: "min_fiat"
+    family: "time"
+    dtype: "float"
+    description: "Minimum forward inter-arrival time"
+    unit: "seconds"
+    role: "feature"
+    
+  - name: "min_biat"
+    family: "time"
+    dtype: "float"
+    description: "Minimum backward inter-arrival time"
+    unit: "seconds"
+    role: "feature"
+    
+  - name: "max_fiat"
+    family: "time"
+    dtype: "float"
+    description: "Maximum forward inter-arrival time"
+    unit: "seconds"
+    role: "feature"
+    
+  - name: "max_biat"
+    family: "time"
+    dtype: "float"
+    description: "Maximum backward inter-arrival time"
+    unit: "seconds"
+    role: "feature"
+    
+  - name: "mean_fiat"
+    family: "time"
+    dtype: "float"
+    description: "Mean forward inter-arrival time"
+    unit: "seconds"
+    role: "feature"
+    
+  - name: "mean_biat"
+    family: "time"
+    dtype: "float"
+    description: "Mean backward inter-arrival time"
+    unit: "seconds"
+    role: "feature"
+    
+  - name: "std_fiat"
+    family: "time"
+    dtype: "float"
+    description: "Standard deviation of forward inter-arrival time"
+    unit: "seconds"
+    role: "feature"
+    
+  - name: "std_biat"
+    family: "time"
+    dtype: "float"
+    description: "Standard deviation of backward inter-arrival time"
+    unit: "seconds"
+    role: "feature"
+    
+  - name: "min_flowiat"
+    family: "time"
+    dtype: "float"
+    description: "Minimum flow inter-arrival time"
+    unit: "seconds"
+    role: "feature"
+    
+  - name: "max_flowiat"
+    family: "time"
+    dtype: "float"
+    description: "Maximum flow inter-arrival time"
+    unit: "seconds"
+    role: "feature"
+    
+  - name: "mean_flowiat"
+    family: "time"
+    dtype: "float"
+    description: "Mean flow inter-arrival time"
+    unit: "seconds"
+    role: "feature"
+    
+  - name: "std_flowiat"
+    family: "time"
+    dtype: "float"
+    description: "Standard deviation of flow inter-arrival time"
+    unit: "seconds"
+    role: "feature"
+    
+  - name: "min_active"
+    family: "time"
+    dtype: "float"
+    description: "Minimum active time"
+    unit: "seconds"
+    role: "feature"
+    
+  - name: "mean_active"
+    family: "time"
+    dtype: "float"
+    description: "Mean active time"
+    unit: "seconds"
+    role: "feature"
+    
+  - name: "max_active"
+    family: "time"
+    dtype: "float"
+    description: "Maximum active time"
+    unit: "seconds"
+    role: "feature"
+    
+  - name: "std_active"
+    family: "time"
+    dtype: "float"
+    description: "Standard deviation of active time"
+    unit: "seconds"
+    role: "feature"
+  
+  # VOLUME FAMILY - Throughput and rate features
+  - name: "flowPktsPerSecond"
+    family: "volume"
+    dtype: "float"
+    description: "Flow packets per second (throughput)"
+    unit: "packets/second"
+    role: "feature"
+    
+  - name: "flowBytesPerSecond"
+    family: "volume"
+    dtype: "float"
+    description: "Flow bytes per second (throughput)"
+    unit: "bytes/second"
+    role: "feature"
+
+# Metadata columns (excluded from modeling per RID-07)
+metadata:
+  - name: "class1"
+    role: "metadata"
+    description: "Original label column from ARFF (string, kept for reference)"
+    note: "This column was in ARFF but gets converted to NaN during preprocessing"
+    
+# Target label
+target:
+  name: "target_class"
+  dtype: "string"
+  values: ["Web Browsing", "VoIP", "Streaming", "File Transfer"]
+  description: "Mapped application category label"
+
+# Feature family coverage analysis
+family_coverage:
+  time: 19  # Most features are timing-related
+  volume: 2  # Throughput features
+  tcp_flag: 0  # Not available in this dataset
+  directional: 0  # fwd/bwd ratios not explicitly present (aggregated in fiat/biat)
+
+# Missing Review-1 families
+missing_families:
+  - tcp_flag: "TCP flag statistics not present in time-based feature dataset"
+  - directional: "Forward/backward packet ratios not explicitly present (implicit in fiat/biat)"
+
+# Notes for CN-014 (PCAP inference parity)
+extractor_alias_map:
+  # To be completed at CN-014 when CICFlowMeter output is verified
+  # Maps extractor column names → schema feature names
+  # Example: "Flow Duration" → "duration"
+  note: "Alias map to be completed against CICFlowMeter output at CN-014"
+  placeholder: {}
+
+# Validation rules
+validation:
+  required_features: 21  # Must have exactly 21 numeric features (excluding class1)
+  allowed_missing_rate: 0.05  # Max 5% missing values per feature
+  constant_feature_threshold: 0.98  # Feature with >98% same value flagged
+  correlation_threshold: 0.95  # Feature pairs with >0.95 correlation flagged
+
+# Feature selection configuration (for staged selector in pipeline)
+feature_selection:
+  enabled: true
+  stages:
+    - name: "variance"
+      method: "VarianceThreshold"
+      threshold: 0.01  # Drop features with variance < 0.01
+    - name: "correlation"
+      method: "correlation_filter"
+      threshold: 0.95  # Drop one of pair if corr > 0.95
+    - name: "importance"
+      method: "SelectFromModel"
+      estimator: "RandomForestClassifier"
+      threshold: "mean"  # Keep features with importance >= mean
+      max_features: null  # No hard limit, use threshold
+
+# Reproducibility
+dataset_hash: "ecdf7e9f550eb0e5"  # From label_mapping SHA-256 (first 16 chars)
+preprocessing_version: "CN-004"
+schema_hash: null  # To be computed when schema is finalized

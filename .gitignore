@@ -1,0 +1,58 @@
+# FlowSentry .gitignore — TRD §3, CN-001
+
+# ── Dataset files (never commit — large, licensed, sensitive) ──
+data/raw/
+data/processed/
+
+# ── Generated artifacts (runs, registry, reports, predictions, logs) ──
+artifacts/
+
+# ── PCAP / capture files (potentially sensitive) ──
+*.pcap
+*.pcapng
+*.cap
+
+# ── Environment files (machine-specific secrets) ──
+.env
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+build/
+dist/
+*.egg-info/
+*.egg
+
+# ── Virtual environments ──
+.venv/
+venv/
+env/
+ENV/
+
+# ── Joblib / model files (committed via registry metadata only) ──
+*.joblib
+*.pkl
+*.pickle
+
+# ── Jupyter notebooks (not used in this project) ──
+.ipynb_checkpoints/
+*.ipynb
+
+# ── OS-generated ──
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDE ──
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Test / coverage outputs ──
+.pytest_cache/
+.coverage
+htmlcov/
