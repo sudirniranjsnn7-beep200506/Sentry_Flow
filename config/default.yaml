@@ -1,0 +1,83 @@
+# FlowSentry — default configuration
+# TRD §25 · FR-012 · NFR-003
+# ─────────────────────────────────────────────────────────────────────────────
+# Do NOT hard-code machine-specific values here.
+# Use .env (git-ignored) for machine-specific paths, e.g.:
+#   FLOWSENTRY_DATA_DIR=C:/path/to/data/raw
+#   CICFLOWMETER_PATH=C:/path/to/CICFlowMeter
+#   CAPTURE_INTERFACE=Wi-Fi
+# ─────────────────────────────────────────────────────────────────────────────
+
+seed: 42
+
+paths:
+  data_raw: data/raw
+  data_processed: data/processed
+  data_sample: data/sample
+  artifacts: artifacts
+  tmp: artifacts/tmp
+
+split:
+  # U-09: test fraction and CV folds — to be confirmed by team at CN-004
+  test_fraction: 0.2
+  stratify: true
+  group_column: null          # U-17: set to column name if session identifiers exist
+
+cv:
+  # U-09: confirmed at CN-004
+  folds: 5
+  shuffle: true
+
+preprocessing:
+  drop_duplicates: true
+  # RID-03: median imputation fit on training data only; options: median | mean | constant
+  missing_strategy: median
+  # RID-07: Source/Destination Port excluded from model input by default
+  port_features: excluded
+
+feature_selection:
+  # RID-08: staged selector (variance → correlation → importance top-k)
+  # All parameters are starting points — tuned at CN-005.
+  variance_threshold: 0.0     # near-zero-variance filter threshold (0 = keep all non-constant)
+  correlation_threshold: 0.95 # Pearson |r| threshold for correlated-pair removal
+  top_k: 30                   # top-k features by importance ranking; tuned at CN-005
+
+svm:
+  # RID-06: kernel SVM may be infeasible on full data; tune on a stratified subsample
+  subsample_fraction: 0.1     # fraction of training data used for SVM tuning/training
+
+# ─────────────────────────────────────────────────────────────────────────────
+# CICFlowMeter integration — TRD §22
+#
+# command_template is intentionally EMPTY until CN-013 verifies the actual
+# command on the team's machine.  Gate: G-CFM.
+# Do NOT fill this in without running CN-013 verification first.
+# ─────────────────────────────────────────────────────────────────────────────
+cicflowmeter:
+  command_template: ""        # VERIFY at CN-013 — do not guess
+  expected_version: ""        # VERIFY at CN-013
+  timeout_seconds: 300
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Live/near-live capture — TRD §23, CN-016
+# All flags must be verified against the installed tshark version at CN-016.
+# ─────────────────────────────────────────────────────────────────────────────
+capture:
+  interface: ""               # set via CAPTURE_INTERFACE env var or here at CN-016
+  chunk_seconds: 60           # rolling PCAP chunk duration (near-live mode)
+  bpf_filter: ""              # optional BPF filter, e.g. "tcp or udp"
+  snaplen: null               # null = full packet; int = truncate (VERIFY with extractor)
+  keep_chunks: false          # delete chunks after processing (privacy default)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Dashboard — TRD §24, CN-018
+# Technology decision: U-12 (RID-09 recommends Streamlit).
+# ─────────────────────────────────────────────────────────────────────────────
+dashboard:
+  host: "127.0.0.1"           # never bind to all interfaces by default
+  port: 8501
+  mask_ips: true              # mask IP addresses in UI for privacy (NFR-007)
+
+logging:
+  level: INFO
+  file: artifacts/logs/flowsentry.log

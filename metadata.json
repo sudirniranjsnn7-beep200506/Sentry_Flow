@@ -1,0 +1,6 @@
+{
+  "name": "FlowSentry - Network Traffic Classification",
+  "description": "Machine learning based network traffic classification using flow-level statistical features without payload inspection.",
+  "permissions": [],
+  "capabilities": []
+}

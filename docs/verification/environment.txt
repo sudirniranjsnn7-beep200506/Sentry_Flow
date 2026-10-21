@@ -1,0 +1,50 @@
+========================================================================
+FlowSentry -- Environment Verification Report  (CN-001)
+Generated : 2026-10-10T00:53:32.133916
+========================================================================
+
+-- Python Runtime ------------------------------------------------------
+  python_version                 3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]
+  python_executable              D:\Sentry_Flow\.venv\Scripts\python.exe
+  platform                       Windows-11-10.0.26200-SP0
+  os                             Windows
+  architecture                   AMD64
+
+-- Required Python Packages --------------------------------------------
+  [OK] pandas                 OK  3.0.6
+  [OK] scikit-learn           OK  1.9.1
+  [OK] xgboost                OK  3.4.1
+  [OK] scapy                  OK  2.8.0
+  [OK] PyYAML                 OK  6.0.3
+  [OK] joblib                 OK  1.6.0
+  [OK] matplotlib             OK  3.11.2
+  [OK] pytest                 OK  9.1.1
+
+  Overall package status: ALL OK
+
+-- External Tools ------------------------------------------------------
+  (Optional for Phase 1; required for later phases as noted)
+
+  tshark  (required for live capture, CN-016):
+    available          NO
+    path               not in PATH
+    version            N/A
+
+  java  (required if using Java CICFlowMeter implementation, CN-013):
+    available          YES
+    path               C:\Program Files (x86)\Common Files\Oracle\Java\javapath\java.EXE
+    version            java version "1.8.0_401"
+
+-- Capture Privileges ---------------------------------------------------
+  (Best-effort heuristic; verified at CN-016)
+
+  available          UNKNOWN
+  note               Neither Npcap nor WinPcap DLL found. Install Npcap (https://npcap.com) for live capture. Admin privileges will also be required.
+
+-- Unresolved Items Surfaced -------------------------------------------
+  U-13 : OS / capture privileges -- see 'Capture Privileges' above.
+  U-05 : CICFlowMeter -- NOT verified here; verified separately at CN-013.
+
+  Record findings in: docs/decisions/decisions.md
+
+========================================================================

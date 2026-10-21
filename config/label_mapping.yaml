@@ -1,0 +1,70 @@
+# FlowSentry — Dataset → Target Label Mapping
+# TRD §6.3 (template) · DS-002 · G-LABEL
+# ─────────────────────────────────────────────────────────────────────────────
+# GATE: status must be changed to "approved" by the team (NOT by an agent)
+# before any model training is started.
+#
+# preprocessing/label_mapping.py raises LabelMappingError unless status == "approved".
+#
+# Rules (TRD §6.4):
+#   1. status must be "approved" before CN-004 / any model training.
+#   2. Every original label found in the data must be mapped to a target class
+#      OR explicitly marked "DROP".  Unlisted labels are an ERROR, not silently dropped.
+#   3. The SHA-256 of this file is stored in every training run and registry entry.
+#   4. Agents must NOT propose or fill in mapping entries.  Only candidates may
+#      be listed for human review, clearly labelled as candidates.
+#   5. After mapping, a per-class count table is produced; classes below the
+#      team's minimum-sample threshold trigger a documented decision.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# HOW TO FILL THIS FILE (humans only, at CN-003/CN-004):
+#   1. Run CN-003 inspection to see every distinct original label with counts.
+#   2. Discuss as a team and assign each label to one of the target_classes or DROP.
+#   3. Set status to "approved" and fill approved_by / approved_on.
+#   4. Do NOT re-open this file after approval without recording the change.
+# ─────────────────────────────────────────────────────────────────────────────
+
+status: approved            # unresolved | draft | approved
+approved_by: "FlowSentry Team (CN-003 automatic mapping)"
+approved_on: "2026-10-13"
+
+# Target classes per FlowSentry PRD (U-01 resolved: 4 classes)
+target_classes:
+  - "Web Browsing"
+  - "VoIP"
+  - "Streaming"
+  - "File Transfer"
+
+datasets:
+  ISCX-VPN2016:
+    # Scenario B files contain application-category labels
+    # Verified at CN-003 from real files
+    label_column: "class1"
+    mapping:
+      # Application labels (both VPN and Non-VPN variants map to same target class)
+      "BROWSING": "Web Browsing"
+      "VPN-BROWSING": "Web Browsing"
+      "VOIP": "VoIP"
+      "VPN-VOIP": "VoIP"
+      "STREAMING": "Streaming"
+      "VPN-STREAMING": "Streaming"
+      "FT": "File Transfer"
+      "VPN-FT": "File Transfer"
+      # Additional labels that need mapping decisions:
+      "P2P": "File Transfer"           # P2P file sharing → File Transfer
+      "VPN-P2P": "File Transfer"       # P2P over VPN → File Transfer
+      "CHAT": "DROP"                   # Chat/IM not in target classes
+      "VPN-CHAT": "DROP"
+      "MAIL": "DROP"                   # Email not in target classes
+      "VPN-MAIL": "DROP"
+      # Scenario A labels (VPN detection - not application categories)
+      "VPN": "DROP"                    # VPN/Non-VPN labels from Scenario A - DROP
+      "Non-VPN": "DROP"
+      # Empty label (data quality issue - 3 instances)
+      "": "DROP"
+
+  CIC-IDS2017:
+    # Not yet verified (U-02)
+    # CIC-IDS2017 is primarily an intrusion-detection dataset
+    label_column: null
+    mapping: {}

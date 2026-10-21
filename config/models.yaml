@@ -1,0 +1,126 @@
+# FlowSentry — Model hyperparameter search spaces
+# TRD §12-16, CN-006-009
+# ─────────────────────────────────────────────────────────────────────────────
+# Parameter names verified against installed versions:
+# - scikit-learn 1.9.1 (2024-10-11)
+# - xgboost 3.4.1 (2024-10-11)
+#
+# All parameter names prefixed with step name in pipeline:
+#   'classifier__<param>' since the model is the 'classifier' step
+# ─────────────────────────────────────────────────────────────────────────────
+
+decision_tree:
+  # DecisionTreeClassifier(criterion, max_depth, min_samples_split, min_samples_leaf, class_weight)
+  # Verified against sklearn 1.9.1
+  param_space:
+    classifier__criterion:
+      - gini
+      - entropy
+    classifier__max_depth:
+      - null      # No limit (high overfitting risk)
+      - 10
+      - 20
+      - 30
+    classifier__min_samples_split:
+      - 2
+      - 5
+      - 10
+    classifier__min_samples_leaf:
+      - 1
+      - 2
+      - 4
+    classifier__class_weight:
+      - null      # No weighting
+      - balanced  # Handle imbalance (Streaming is only 4.6%)
+  
+  notes: |
+    Interpretable baseline. Prone to overfitting without depth limits.
+    Export tree structure (depth, leaves) for viva discussion.
+    Fast to train. Good for understanding which features matter.
+
+random_forest:
+  # RandomForestClassifier - REDUCED search space for time constraints
+  # Verified against sklearn 1.9.1 (2024-10-11)
+  # Using minimal grid to complete training in reasonable time
+  param_space:
+    classifier__n_estimators:
+      - 100
+    classifier__criterion:
+      - gini
+    classifier__max_depth:
+      - 20
+    classifier__max_features:
+      - sqrt
+    classifier__min_samples_leaf:
+      - 2
+    classifier__class_weight:
+      - balanced
+  
+  notes: |
+    Ensemble method combining multiple decision trees.
+    Search space reduced for computational efficiency.
+    Full grid would be: n_estimators[50,100,200] x criterion[gini,entropy] x ...
+    Current: single best-guess configuration for baseline.
+
+svm:
+  # SVC(C, kernel, gamma, class_weight)
+  # To be verified against sklearn 1.9.1 at CN-008
+  # RID-06: May require stratified subsample for tuning due to scalability
+  param_space:
+    classifier__C:
+      - 0.1
+      - 1.0
+      - 10.0
+    classifier__kernel:
+      - rbf
+      - linear
+    classifier__gamma:
+      - scale   # 1 / (n_features * X.var())
+      - auto    # 1 / n_features
+    classifier__class_weight:
+      - null
+      - balanced
+  
+  notes: |
+    Kernel SVM may be slow on full dataset (RID-06).
+    Tune on stratified subsample (config: svm.subsample_fraction).
+    Test set never subsampled.
+    Scaling required (already in pipeline).
+    probability=False by default (expensive).
+
+xgboost:
+  # XGBClassifier(n_estimators, max_depth, learning_rate, subsample, colsample_bytree, reg_alpha, reg_lambda)
+  # To be verified against xgboost 3.4.1 at CN-009
+  # Integer-encoded labels required
+  param_space:
+    classifier__n_estimators:
+      - 50
+      - 100
+      - 200
+    classifier__max_depth:
+      - 3
+      - 6
+      - 10
+    classifier__learning_rate:
+      - 0.01
+      - 0.1
+      - 0.3
+    classifier__subsample:
+      - 0.8
+      - 1.0
+    classifier__colsample_bytree:
+      - 0.8
+      - 1.0
+    classifier__reg_alpha:    # L1 regularization
+      - 0
+      - 0.1
+    classifier__reg_lambda:   # L2 regularization
+      - 1
+      - 10
+  
+  notes: |
+    Gradient boosting ensemble.
+    Verify parameter names against installed xgboost version (API changes).
+    Requires integer-encoded labels (LabelEncoder).
+    Handle imbalance via sample weights computed on training data.
+    Early stopping uses training-only validation split if enabled.
